@@ -1,149 +1,509 @@
 package in.mindcraft.service;
 
-import in.mindcraft.entity.Student;
-import org.springframework.stereotype.Service;
-import in.mindcraft.repository.*;
-import java.util.NoSuchElementException;
 import java.util.List;
 
-@Service
-public class StudentServiceImpl implements StudentService {
+import org.springframework.stereotype.Service;
 
+import in.mindcraft.entity.Student;
+import in.mindcraft.exception.StudentNotFoundException;
+import in.mindcraft.repository.StudentRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Service
+public class StudentServiceImpl
+        implements StudentService {
+	private static final Logger logger =
+            LoggerFactory.getLogger(
+                    StudentServiceImpl.class
+            );
+	
     private final StudentRepository studentRepository;
 
-    public StudentServiceImpl(StudentRepository studentRepository) {
+    public StudentServiceImpl(
+            StudentRepository studentRepository
+    ) {
         this.studentRepository = studentRepository;
     }
-    
-    
-    // 1. POSTMAPPING API FOR adding students into the DB 
+
+    // =========================================
+    // CREATE
+    // =========================================
 
     @Override
-    public Student createStudent(Student student) {
+    public Student createStudent(
+            Student student
+    ) {
 
-        student.setActiveSw("Y");
+        logger.info(
+                "Creating student with email: {}",
+                student.getStudentEmail()
+        );
 
-        return studentRepository.save(student);
+        Student savedStudent =
+                studentRepository.save(student);
+
+        logger.info(
+                "Student created successfully with ID: {}",
+                savedStudent.getStudentId()
+        );
+
+        return savedStudent;
     }
-    
-     // 1. POSTMAPPING API FOR adding students into the DB 
-    
-    //--------------------------------------------------------------//
 
-	// 2. POSTMAPPING API FOR adding BULK students into DB
+    // =========================================
+    // BULK CREATE
+    // =========================================
 
     @Override
-    public List<Student> createBulkStudents(List<Student> students){
-    	for (Student student: students) {
-    		student.setActiveSw("Y");
-    	}
-    	
-    	return studentRepository.saveAll(students);
+    public List<Student> createBulkStudents(
+            List<Student> students
+    ) {
+
+        return studentRepository.saveAll(students);
+
     }
-	// 2. POSTMAPPING API FOR adding BULK students into DB
-    
-    // ------------------------------------------------------------//
-    
-	// 3. GETMAPPING API FOR Fetching StudentById
+
+    // =========================================
+    // GET BY ID
+    // =========================================
 
     @Override
-    public Student getStudentById(Integer studentId) {
+    public Student getStudentById(
+            Integer studentId
+    ) {
 
-        return studentRepository.findById(studentId)
-                .orElseThrow(() -> new NoSuchElementException(
-                        "Student not found with ID: " + studentId
-                ));
+        logger.info(
+                "Fetching student with ID: {}",
+                studentId
+        );
+
+        Student student = studentRepository
+                .findStudentByStudentId(studentId)
+                .orElseThrow(() -> {
+
+                    logger.warn(
+                            "Student not found with ID: {}",
+                            studentId
+                    );
+
+                    return new StudentNotFoundException(
+                            "Student not found with ID: "
+                            + studentId
+                    );
+                });
+
+        logger.info(
+                "Student found with ID: {}",
+                studentId
+        );
+
+        return student;
     }
-	// 3. GETMAPPING API FOR Fetching StudentById
-    
-    // ------------------------------------------------------------//
 
-	// 4. GETMAPPING API FOR FETCHING ALL STUDENTS
- 
+    // =========================================
+    // GET ALL
+    // =========================================
+
     @Override
     public List<Student> getAllStudents() {
-    	
-    	return studentRepository.findAll();
-    }
-	// 4. GETMAPPING API FOR FETCHING ALL STUDENTS
 
-    // ------------------------------------------------------------//
+        return studentRepository.findAll();
 
-	// 5. GETMAPPING API FOR FETCHING ALL ACTIVE STUDENTS
-    
-    @Override
-    public List<Student> getActiveStudents() {
-
-        return studentRepository.findByActiveSw("Y");
-    }
-	// 5. GETMAPPING API FOR FETCHING ALL ACTIVE STUDENTS
-    
-    // ------------------------------------------------------------//
-
-
-	// 6. PUT MAPPING API FOR UPDATING STUDENT BY STUDENTID
-
-    @Override
-    public Student updateStudent(Integer studentId, Student student ) {
-    	Student existingStudent = studentRepository.findById(studentId)
-                        .orElseThrow(() -> new NoSuchElementException("No such Student found for this ID:" + studentId));
-    	existingStudent.setStudentName(student.getStudentName());
-    	existingStudent.setStudentRank(student.getStudentRank());
-    	existingStudent.setStudentEmail(student.getStudentEmail());
-    	existingStudent.setStudentGender(student.getStudentGender());
-    	
-    	return studentRepository.save(existingStudent);
-    
-    }
-	// 6. PUT MAPPING API FOR UPDATING STUDENT BY STUDENTID
-    
-    // ------------------------------------------------------------//
-
-	// 7. DELETE MAPPING API FOR DELETING STUDENT BY STUDENTID
-
-    
-    @Override
-    public void hardDeleteStudent(Integer id) {
-    		Student student = studentRepository.findById(id)
-    				.orElseThrow(() -> new NoSuchElementException(
-                           "No such Student found for this ID: " + id
-    						));
-    		 studentRepository.delete(student);
-  }
-   
-	// 7. DELETE MAPPING API FOR DELETING STUDENT BY STUDENTID
-    
-    // ------------------------------------------------------------//
-
-    // 8. SOFTDELETE MAPPING API FOR DEACTIVTING STUDENT
-    
-    @Override
-    public Student softDeleteStudent(Integer studentId) {
-
-        Student existingStudent = studentRepository.findById(studentId)
-                .orElseThrow(() -> new NoSuchElementException(
-                        "No such Student found for this ID: " + studentId
-                ));
-
-        existingStudent.setActiveSw("N");
-
-        return studentRepository.save(existingStudent);
     }
 
-    // 8. SOFTDELETE MAPPING API FOR DEACTIVTING STUDENT
-    
-    // ------------------------------------------------------------//
-
-    // 9. GETMAPPING API FOR FETCHING STUDENTS BY ACTIVITY(Y/N)
+    // =========================================
+    // UPDATE
+    // =========================================
 
     @Override
-    public List<Student> getStudentsByActivity(String activeSw) {
-    	
-    	return studentRepository.findByActiveSw(activeSw);
+    public Student updateStudent(
+            Integer studentId,
+            Student student
+    ) {
+
+        logger.info(
+                "Updating student with ID: {}",
+                studentId
+        );
+
+        Student existingStudent =
+                studentRepository
+                        .findStudentByStudentId(studentId)
+                        .orElseThrow(() -> {
+
+                            logger.warn(
+                                    "Student not found for update. ID: {}",
+                                    studentId
+                            );
+
+                            return new StudentNotFoundException(
+                                    "Student not found with ID: "
+                                    + studentId
+                            );
+                        });
+
+        existingStudent.setStudentName(
+                student.getStudentName()
+        );
+
+        existingStudent.setStudentRank(
+                student.getStudentRank()
+        );
+
+        existingStudent.setStudentGender(
+                student.getStudentGender()
+        );
+
+        existingStudent.setStudentEmail(
+                student.getStudentEmail()
+        );
+
+        existingStudent.setActiveSw(
+                student.getActiveSw()
+        );
+
+        Student updatedStudent =
+                studentRepository.save(existingStudent);
+
+        logger.info(
+                "Student updated successfully. ID: {}",
+                studentId
+        );
+
+        return updatedStudent;
     }
-    
-    // 9. GETMAPPING API FOR FETCHING STUDENTS BY ACTIVITY(Y/N)
+
+    // =========================================
+    // GET BY ACTIVITY
+    // =========================================
+
+    @Override
+    public List<Student> getStudentsByActivity(
+            String status
+    ) {
+
+        return studentRepository
+                .findStudentsByActiveSw(status);
+
+    }
+
+    // =========================================
+    // SOFT DELETE
+    // =========================================
+
+    @Override
+    public Student softDeleteStudent(
+            Integer studentId
+    ) {
+
+        logger.info(
+                "Soft deleting student with ID: {}",
+                studentId
+        );
+
+        Student student =
+                studentRepository
+                        .findStudentByStudentId(studentId)
+                        .orElseThrow(() -> {
+
+                            logger.warn(
+                                    "Student not found for soft delete. ID: {}",
+                                    studentId
+                            );
+
+                            return new StudentNotFoundException(
+                                    "Student not found with ID: "
+                                    + studentId
+                            );
+                        });
+
+        student.setActiveSw("N");
+
+        Student updatedStudent =
+                studentRepository.save(student);
+
+        logger.info(
+                "Student soft deleted successfully. ID: {}",
+                studentId
+        );
+
+        return updatedStudent;
+    }
+
+    // =========================================
+    // HARD DELETE
+    // =========================================
+
+    @Override
+    public void deleteStudent(
+            Integer studentId
+    ) {
+
+        logger.info(
+                "Hard deleting student with ID: {}",
+                studentId
+        );
+
+        Student student =
+                studentRepository
+                        .findStudentByStudentId(studentId)
+                        .orElseThrow(() -> {
+
+                            logger.warn(
+                                    "Student not found for deletion. ID: {}",
+                                    studentId
+                            );
+
+                            return new StudentNotFoundException(
+                                    "Student not found with ID: "
+                                    + studentId
+                            );
+                        });
+
+        studentRepository.delete(student);
+
+        logger.info(
+                "Student hard deleted successfully. ID: {}",
+                studentId
+        );
+    }
+    // =========================================
+    // DERIVED QUERY - GENDER
+    // =========================================
+
+    @Override
+    public List<Student> getStudentsByGender(
+            String gender
+    ) {
+
+        return studentRepository
+                .findStudentsByStudentGender(gender);
+
+    }
+
+    // =========================================
+    // DERIVED QUERY - RANK >=
+    // =========================================
+
+    @Override
+    public List<Student>
+    getStudentsByRankGreaterThanEqual(
+            String rank
+    ) {
+
+        return studentRepository
+                .findStudentsByStudentRankGreaterThanEqual(
+                        rank
+                );
+
+    }
+
+    // =========================================
+    // DERIVED QUERY - RANK <=
+    // =========================================
+
+    @Override
+    public List<Student>
+    getStudentsByRankLessThanEqual(
+            String rank
+    ) {
+
+        return studentRepository
+                .findStudentsByStudentRankLessThanEqual(
+                        rank
+                );
+
+    }
+
+    // =========================================
+    // DERIVED QUERY - GENDER AND RANK
+    // =========================================
+
+    @Override
+    public List<Student>
+    getStudentsByGenderAndRank(
+            String gender,
+            String rank
+    ) {
+
+        return studentRepository
+                .findStudentsByStudentGenderAndStudentRankGreaterThanEqual(
+                        gender,
+                        rank
+                );
+
+    }
+
+    // =========================================
+    // DERIVED QUERY - NAME STARTS WITH
+    // =========================================
+
+    @Override
+    public List<Student>
+    getStudentsByNameStartingWith(
+            String name
+    ) {
+
+        return studentRepository
+                .findStudentsByStudentNameStartingWith(
+                        name
+                );
+
+    }
+
+    // =========================================
+    // DERIVED QUERY - NAME CONTAINS
+    // =========================================
+
+    @Override
+    public List<Student>
+    getStudentsByNameContaining(
+            String name
+    ) {
+
+        return studentRepository
+                .findStudentsByStudentNameContaining(
+                        name
+                );
+
+    }
+
+    // =========================================
+    // DERIVED QUERY - EMAIL
+    // =========================================
+
+    @Override
+    public Student getStudentByEmail(
+            String email
+    ) {
+
+        return studentRepository
+                .findStudentByStudentEmail(email)
+                .orElseThrow(
+                        () -> new StudentNotFoundException(
+                                "Student not found with email: "
+                                + email
+                        )
+                );
+
+    }
+
+    // =========================================
+    // DERIVED QUERY - GENDER NULL
+    // =========================================
+
+    @Override
+    public List<Student>
+    getStudentsWithNullGender() {
+
+        return studentRepository
+                .findStudentsByStudentGenderIsNull();
+
+    }
+
+    // =========================================
+    // NATIVE QUERY - GET ACTIVE STUDENTS
+    // =========================================
+
+    @Override
+    public List<Student> getActiveStudentsNative() {
+
+        return studentRepository
+                .getActiveStudentsNative();
+
+    }
+
+    // =========================================
+    // NATIVE QUERY - UPDATE GENDER
+    // =========================================
+
+    @Override
+    public void updateStudentGenderNative(
+            Integer studentId,
+            String gender
+    ) {
+
+        logger.info(
+                "Native query: Updating gender for student ID: {}",
+                studentId
+        );
+
+        int updatedRows =
+                studentRepository
+                        .updateStudentGenderNative(
+                                studentId,
+                                gender
+                        );
+
+        if (updatedRows == 0) {
+
+            logger.warn(
+                    "Native update failed. Student not found: {}",
+                    studentId
+            );
+
+            throw new StudentNotFoundException(
+                    "Student not found with ID: "
+                    + studentId
+            );
+        }
+
+        logger.info(
+                "Native query: Gender updated successfully for ID: {}",
+                studentId
+        );
+    }
+    // =========================================
+    // NATIVE QUERY - HARD DELETE
+    // =========================================
+
+    @Override
+    public void deleteStudentNative(
+            Integer studentId
+    ) {
+
+        int deletedRows =
+                studentRepository
+                .deleteStudentNative(studentId);
+
+        if (deletedRows == 0) {
+
+            throw new StudentNotFoundException(
+                    "Student not found with ID: "
+                    + studentId
+            );
+
+        }
+
+    }
+
+    // =========================================
+    // DUPLICATE TEST - DERIVED QUERY
+    // =========================================
+
+    @Override
+    public Student testDuplicateDerivedQuery(
+            String studentName
+    ) {
+
+        return studentRepository
+                .findStudentByStudentName(studentName);
+
+    }
+
+    // =========================================
+    // DUPLICATE TEST - NATIVE QUERY
+    // =========================================
+
+    @Override
+    public Student testDuplicateNativeQuery(
+            String studentName
+    ) {
+
+        return studentRepository
+                .findStudentByNameNative(studentName);
+
+    }
 
 }
-
-	

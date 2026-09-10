@@ -10,10 +10,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
+
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -22,28 +22,30 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Table(name = "student_dtls")
 public class Student {
 
-    @Id 
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "student_id")
     private Integer studentId;
 
-    @NotBlank(message = "student name is required")
+
+    @NotBlank(message = "Student name is required")
     @Pattern(
         regexp = "^[A-Za-z ]+$",
-        message = "student name must contain only letters and spaces"
+        message = "Student name must contain only letters and spaces"
     )
     @Column(name = "student_name")
     private String studentName;
 
-    @NotBlank(message = "student rank is required")
+
+    @NotBlank(message = "Student rank is required")
     @Pattern(
-    		regexp = "^[1-9][0-9]*$",
-    		message = "Rank can only be a positive number"
-    		)
+        regexp = "^[1-9][0-9]*$",
+        message = "Rank must be a positive number"
+    )
     @Column(name = "student_rank")
     private String studentRank;
-    
-    
+
+
     @NotBlank(message = "Gender is required")
     @Pattern(
         regexp = "^[MF]$",
@@ -51,13 +53,15 @@ public class Student {
     )
     @Column(name = "student_gender")
     private String studentGender;
-    
+
+
     @Pattern(
         regexp = "^[YN]$",
         message = "Active flag must be Y or N"
     )
     @Column(name = "active_sw")
     private String activeSw;
+
 
     @CreationTimestamp
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -71,84 +75,76 @@ public class Student {
     private LocalDateTime updatedDate;
 
 
-    @NotBlank(message = "Student email is required")
-    @Email(message = "Please provide a valid email address")
-    @Column(name = "student_email", unique=true)
+    @Email(message = "Invalid email format")
+    @NotBlank(message = "Email is required")
+    @Column(name = "student_email")
     private String studentEmail;
-    
+
+
     public Student() {
     }
 
 
-	public Integer getStudentId() {
-		return studentId;
-	}
+    public Integer getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(Integer studentId) {
+        this.studentId = studentId;
+    }
 
 
-	public void setStudentId(Integer studentId) {
-		this.studentId = studentId;
-	}
+    public String getStudentName() {
+        return studentName;
+    }
+
+    public void setStudentName(String studentName) {
+        this.studentName = studentName;
+    }
 
 
-	public String getStudentName() {
-		return studentName;
-	}
+    public String getStudentRank() {
+        return studentRank;
+    }
+
+    public void setStudentRank(String studentRank) {
+        this.studentRank = studentRank;
+    }
 
 
-	public void setStudentName(String studentName) {
-		this.studentName = studentName;
-	}
+    public String getStudentGender() {
+        return studentGender;
+    }
+
+    public void setStudentGender(String studentGender) {
+        this.studentGender = studentGender;
+    }
 
 
-	public String getStudentRank() {
-		return studentRank;
-	}
+    public String getActiveSw() {
+        return activeSw;
+    }
+
+    public void setActiveSw(String activeSw) {
+        this.activeSw = activeSw;
+    }
 
 
-	public void setStudentRank(String studentRank) {
-		this.studentRank = studentRank;
-	}
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
 
 
-	public String getStudentGender() {
-		return studentGender;
-	}
+    public LocalDateTime getUpdatedDate() {
+        return updatedDate;
+    }
 
 
-	public void setStudentGender(String studentGender) {
-		this.studentGender = studentGender;
-	}
+    public String getStudentEmail() {
+        return studentEmail;
+    }
 
-
-	public String getActiveSw() {
-		return activeSw;
-	}
-
-
-	public void setActiveSw(String activeSw) {
-		this.activeSw = activeSw;
-	}
-
-
-	public LocalDateTime getCreatedDate() {
-		return createdDate;
-	}
-
-
-	public LocalDateTime getUpdatedDate() {
-		return updatedDate;
-	}
-
-
-
-	public String getStudentEmail() {
-		return studentEmail;
-	}
-
-
-	public void setStudentEmail(String studentEmail) {
-		this.studentEmail = studentEmail;
-	}
-
-	
+    public void setStudentEmail(String studentEmail) {
+        this.studentEmail = studentEmail;
+    }
 }
