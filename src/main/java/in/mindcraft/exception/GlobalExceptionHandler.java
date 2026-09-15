@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import org.springframework.web.client.HttpClientErrorException;
+
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -125,6 +127,22 @@ public class GlobalExceptionHandler {
 
     }
     
+    @ExceptionHandler(HttpClientErrorException.Forbidden.class)
+    public ResponseEntity<ErrorResponse> handleForbidden(
+            HttpClientErrorException.Forbidden ex) {
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.FORBIDDEN.value(),
+                HttpStatus.FORBIDDEN.getReasonPhrase(),
+                "Academic Service rejected the request"
+        );
+
+        return new ResponseEntity<>(
+                errorResponse,
+                HttpStatus.FORBIDDEN
+        );
+    }    
     
  }
     

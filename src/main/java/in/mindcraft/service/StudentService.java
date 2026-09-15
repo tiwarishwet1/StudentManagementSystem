@@ -127,4 +127,7 @@ public interface StudentService {
 	Student testDuplicateNativeQuery(
 	        String studentName
 	);
+	
+// External Api
+//	List<Student> getExternalStudentData();
 }
